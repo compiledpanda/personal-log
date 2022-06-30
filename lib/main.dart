@@ -1,7 +1,19 @@
+import 'dart:io' show Directory;
+
 import 'package:flutter/material.dart';
 import 'dart:developer';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
-void main() {
+import 'package:personal_log/wren.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final Directory result = await getApplicationSupportDirectory();
+  log(result.absolute.path);
+  Wren.init(join(result.path, 'personalLog.db'));
+
   runApp(const MyApp());
 }
 
@@ -45,7 +57,10 @@ class _EntryWidgetState extends State<EntryWidget> {
     setState(() {
       _message = 'Saving...';
     });
-    await Future.delayed(const Duration(seconds: 1));
+    await Wren.database.insert('entries', {
+      'timestamp': DateTime.now().toIso8601String(),
+      'entry': _controller.text,
+    });
     setState(() {
       _message = 'Saved';
       _controller.clear();
